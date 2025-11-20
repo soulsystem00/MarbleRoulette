@@ -580,7 +580,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 2085171010}
   winType: 0
-  followSpeed: 2
+  followSpeed: 5
   isFollowing: 1
 --- !u!1 &2126405206
 GameObject:

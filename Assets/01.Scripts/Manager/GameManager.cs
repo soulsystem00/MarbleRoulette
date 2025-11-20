@@ -65,7 +65,13 @@ public class GameManager : MonoSingleton<GameManager>
     // Update is called once per frame
     void Update()
     {
-
+        if (fsmController.State == FSMState.Playing || fsmController.State == FSMState.Result)
+        {
+            foreach (var item in players)
+            {
+                item.Move();
+            }
+        }
     }
 
     public void OnIdle()
@@ -147,6 +153,19 @@ public class GameManager : MonoSingleton<GameManager>
                 var player = ObjectPoolManager.Instance.Instantiate<Player>(PoolType.Player, spawnPosition, Quaternion.identity, this.transform);
                 player.SetPlayerName($"{item.Key}#{i + 1}");
                 player.SetPlayerColor(UniqueColorGenerator.GetUniqueColor());
+
+                int randomValue = UnityEngine.Random.Range(0, 100);
+
+                if (randomValue < 50)
+                {
+                    // Skill Player
+                    Debug.Log("Skill Set");
+                    float randomTime = UnityEngine.Random.Range(1f, 10f);
+
+                    player.SetSkillTimer(randomTime);
+                }
+
+
                 players.Add(player);
                 playerIndex++;
             }
