@@ -30,6 +30,9 @@ public class GameManager : MonoSingleton<GameManager>
     private MapType currentMapType = MapType.Map1;
     private GameObject currentMap = null;
 
+    private string winnerPlayerName = string.Empty;
+    public string WinnerPlayerName => winnerPlayerName;
+
     protected override void Init()
     {
         if (players == null)
@@ -51,8 +54,6 @@ public class GameManager : MonoSingleton<GameManager>
         {
             playerList = new List<KeyValuePair<string, int>>();
         }
-
-
     }
 
     // Start is called before the first frame update
@@ -70,10 +71,13 @@ public class GameManager : MonoSingleton<GameManager>
     public void OnIdle()
     {
         ClearAllPlayers();
+        UIManager.Instance.CloseUI<UIRanking>();
+
+        cameraController.IsFollowing = false;
 
         players.Clear();
         goalPlayers.Clear();
-
+        winnerPlayerName = string.Empty;
         MapSetting(MapType.Map1);
     }
 
@@ -86,9 +90,8 @@ public class GameManager : MonoSingleton<GameManager>
             return;
         }
 
-        string[] playerRawData = data.Split(',').Select(x => x.Trim()).ToArray();
-
         List<KeyValuePair<string, int>> curPlayerList = new List<KeyValuePair<string, int>>();
+        string[] playerRawData = data.Split(',').Select(x => x.Trim()).ToArray();
 
         foreach (var item in playerRawData)
         {
@@ -103,10 +106,21 @@ public class GameManager : MonoSingleton<GameManager>
                 string playerName = playerData[0].Trim();
                 if (int.TryParse(playerData[1], out var playerCount))
                 {
-                    KeyValuePair<string, int> player = new KeyValuePair<string, int>(playerName, playerCount);
+                    var index = curPlayerList.FindIndex(x => x.Key == playerName);
 
-                    Debug.Log($"Player Add / Name : {player.Key}, Value : {player.Value}");
-                    curPlayerList.Add(player);
+                    if (index == -1)
+                    {
+                        KeyValuePair<string, int> player = new KeyValuePair<string, int>(playerName, playerCount);
+
+                        Debug.Log($"Player Add / Name : {player.Key}, Value : {player.Value}");
+                        curPlayerList.Add(player);
+                    }
+                    else
+                    {
+                        var temp = curPlayerList[index];
+                        temp = new KeyValuePair<string, int>(temp.Key, temp.Value + playerCount);
+                        curPlayerList[index] = temp;
+                    }
                 }
                 else
                 {
@@ -131,7 +145,7 @@ public class GameManager : MonoSingleton<GameManager>
                 var spawnPosition = GetPlayerPosition(playerIndex);
 
                 var player = ObjectPoolManager.Instance.Instantiate<Player>(PoolType.Player, spawnPosition, Quaternion.identity, this.transform);
-                player.SetPlayerName(item.Key);
+                player.SetPlayerName($"{item.Key}#{i + 1}");
                 player.SetPlayerColor(UniqueColorGenerator.GetUniqueColor());
                 players.Add(player);
                 playerIndex++;
@@ -200,6 +214,8 @@ public class GameManager : MonoSingleton<GameManager>
 
     public void Play()
     {
+        UIManager.Instance.OpenUI<UIRanking>();
+
         foreach (var player in players)
         {
             player.EnableControl();
@@ -217,23 +233,30 @@ public class GameManager : MonoSingleton<GameManager>
 
         if (winType == WinType.FirstToWin)
         {
+            // 첫 번째 골을 기록한 플레이어가 승리
             if (goalPlayers.Count == 1)
             {
-                // 첫 번째 골을 기록한 플레이어가 승리
                 Debug.Log($"Winner! : {goalPlayers[0]}");
-
+                winnerPlayerName = goalPlayers[0];
                 fsmController.ChangeState(FSMState.Result);
             }
         }
         else
         {
+            // 마지막 남은 플레이어가 승리
             if (players.Count == 1)
             {
-                // 마지막 남은 플레이어가 승리
                 Debug.Log($"Winner! : {players[0].GetPlayerName()}");
-
+                winnerPlayerName = players[0].GetPlayerName();
                 fsmController.ChangeState(FSMState.Result);
             }
+        }
+
+        if (UIManager.Instance.IsOpenUI<UIRanking>() == true)
+        {
+            var targetUI = UIManager.Instance.GetUI<UIRanking>();
+
+            targetUI.UpdateRankingText(goalPlayers);
         }
     }
 

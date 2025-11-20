@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
-public class UIResult : MonoBehaviour
+public class UIResult : UIBase
 {
-    // Start is called before the first frame update
-    void Start()
+    const string PREFIX_WINNER = "Winner: ";
+
+    [SerializeField] TextMeshProUGUI winnerText;
+    public override void Init()
     {
-        
+        winnerText.text = PREFIX_WINNER;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetWinner(string winnerName)
     {
-        
+        winnerText.text = PREFIX_WINNER + winnerName;
     }
 }

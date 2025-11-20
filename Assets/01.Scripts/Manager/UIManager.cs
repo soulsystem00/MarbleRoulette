@@ -77,6 +77,16 @@ public class UIManager : MonoSingleton<UIManager>
         }
     }
 
+    public bool IsOpenUI<T>() where T : UIBase
+    {
+        T ui = GetUI<T>();
+        if (ui != null)
+        {
+            return ui.IsOpen;
+        }
+        return false;
+    }
+
     [ContextMenu("TestOpenUI")]
     private void TestOpenUI()
     {

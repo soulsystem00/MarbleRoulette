@@ -7,6 +7,8 @@ public abstract class UIBase : MonoBehaviour, IUIBase
     [SerializeField] protected UISortintOrder sortintOrder = UISortintOrder.Default;
     [SerializeField] protected GameObject view;
 
+    public bool IsOpen => view.activeSelf;
+
     public abstract void Init();
     public virtual void Open()
     {

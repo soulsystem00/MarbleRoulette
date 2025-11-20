@@ -28,6 +28,7 @@ public class CameraController : MonoBehaviour
     {
         if (isFollowing == false)
         {
+            transform.position = new Vector3(0, 0, transform.position.z);
             return;
         }
 
